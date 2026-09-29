@@ -1,10 +1,14 @@
 import os
+import glob
 
-SDC_RAW_DATA_FOLDER = 'SDC_IPO_variables_2000-2025'
+START_YEAR = 2000
+END_YEAR = 2025
+
+SDC_RAW_DATA_FOLDER = f'SDC_IPO_variables_{START_YEAR}-{END_YEAR}'
 INTERMEDIATE_FOLDER = 'intermediate_output'
 
-COUNTRY_INTEGRATION_PATH = os.path.join(INTERMEDIATE_FOLDER, f"{SDC_RAW_DATA_FOLDER}.xlsx")
-FILTERED_IPO_PATH = os.path.join(INTERMEDIATE_FOLDER, "SDC_IPO_variables_exclude_non_ipos_2000-2025.xlsx")
+COUNTRY_INTEGRATION_FILE_PREFIX = f"SDC_IPO_variables_{START_YEAR}-{END_YEAR}"
+FILTERED_FILE_PREFIX = f"SDC_IPO_variables_exclude_non_ipos_{START_YEAR}-{END_YEAR}"
 
 IPO_FILTER_CRITERIA = {
     'keep_true': [
@@ -27,3 +31,19 @@ IPO_FILTER_CRITERIA = {
         'Spinoff (Equity Carveout) Type (Code)': 'P'
     }
 }
+
+def get_existing_files(prefix):
+    search_pattern = os.path.join(INTERMEDIATE_FOLDER, f"{prefix}_*.xlsx")
+    return glob.glob(search_pattern)
+
+def get_latest_file(prefix):
+    # Automatically find the latest modified file with a specific prefix (ignoring record count suffix) in case of multiple matches
+    files = get_existing_files(prefix)
+    
+    if not files:
+        raise FileNotFoundError(f"File with prefix '{prefix}' not found. Please run the corresponding script first.")
+        
+    return max(files, key=os.path.getmtime)
+
+def get_output_path(prefix, record_count):
+    return os.path.join(INTERMEDIATE_FOLDER, f"{prefix}_{record_count}.xlsx")

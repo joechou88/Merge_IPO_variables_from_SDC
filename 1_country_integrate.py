@@ -5,24 +5,24 @@ import pandas as pd
 import config
 import utility
 
-output_path = config.COUNTRY_INTEGRATION_PATH
+existing_files = config.get_existing_files(config.COUNTRY_INTEGRATION_FILE_PREFIX)
 
 # Check if the output file already exists and ask for overwrite permission
-if os.path.exists(output_path):
-    user_response = input(f"{output_path} already exists. Do you want to overwrite it? (Y/N): ")
+if existing_files:
+    user_response = input(f"Previous integration file(s) exist. Do you want to overwrite it? (Y/N): ")
     if user_response.lower() != 'y':
         print("Operation cancelled.")
         exit()
 
+    for file in existing_files:
+        os.remove(file)
+
 # Find all Excel files in the specific folder
 search_pattern = os.path.join(config.SDC_RAW_DATA_FOLDER, '*.xlsx')
 excel_files = glob.glob(search_pattern)
-
-# Skip SDC_IPO_variables_2000-2025.xlsx since it is the output file in the same folder
 excel_files = [
     file for file in excel_files 
-    if os.path.basename(file) != os.path.basename(config.COUNTRY_INTEGRATION_PATH)
-    and not os.path.basename(file).startswith('~$')
+    if not os.path.basename(file).startswith('~$')
 ]
 
 # Sort files in alphabetical order
@@ -50,5 +50,9 @@ combined_df = pd.concat(df_list, ignore_index=True)
 # Fill all empty values with a dot
 combined_df = combined_df.fillna('.')
 
+record_count = len(combined_df)
+output_path = config.get_output_path(config.COUNTRY_INTEGRATION_FILE_PREFIX, record_count)
+
 combined_df.to_excel(output_path, index=False)
-print("All countries merge completed successfully.")
+print(f"All countries merge completed successfully. Total records: {record_count}")
+print(f"Saved to: {output_path}")

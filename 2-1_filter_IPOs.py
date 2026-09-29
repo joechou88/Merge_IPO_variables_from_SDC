@@ -1,7 +1,8 @@
 import pandas as pd
 import config
 
-df = pd.read_excel(config.COUNTRY_INTEGRATION_PATH)
+input_file = config.get_latest_file(config.COUNTRY_INTEGRATION_FILE_PREFIX)
+df = pd.read_excel(input_file)
 
 true_values = [True, 'True', 'TRUE', 'Yes', 'YES', 'Y', 'y', '1', 1]
 empty_values = ['.', '']
@@ -45,9 +46,12 @@ for column, value_to_exclude in config.IPO_FILTER_CRITERIA['exclude_specific_val
     filter_statistics.append(log_message)
     current_record_count = new_record_count
 
-df.to_excel(config.FILTERED_IPO_PATH, index=False)
+final_record_count = len(df)
+output_path = config.get_output_path(config.FILTERED_FILE_PREFIX, final_record_count)
+df.to_excel(output_path, index=False)
 
 with open("2-1_filter_IPOs.txt", "w", encoding="utf-8") as output_file:
     output_file.write("\n".join(filter_statistics))
 
-print("\nIPO filtering completed successfully.")
+print(f"\nIPO filtering completed successfully. Total records: {final_record_count}")
+print(f"Saved to: {output_path}")
