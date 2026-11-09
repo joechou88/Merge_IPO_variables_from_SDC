@@ -1,5 +1,6 @@
 import os
 import glob
+import re
 
 START_YEAR = 2000
 END_YEAR = 2025
@@ -8,7 +9,26 @@ SDC_RAW_DATA_FOLDER = f'SDC_{START_YEAR}-{END_YEAR}'
 INTERMEDIATE_FOLDER = 'intermediate_output'
 
 COUNTRY_INTEGRATION_FILE_PREFIX = f"SDC_{START_YEAR}-{END_YEAR}"
-FILTERED_FILE_PREFIX = f"SDC_exclude_non_ipos_{START_YEAR}-{END_YEAR}"
+
+# Verbose regex for filenames with named groups
+FILENAME_PATTERN = re.compile(
+    r"""
+    ^
+    (?:
+        (?P<country>[A-Z][A-Za-z]+(?:-[A-Z][A-Za-z]+)*)  # Match countries (e.g., Germany, South-Korea)
+        |
+        (?P<category>[A-Za-z0-9\-]+)                                     # Match categories (e.g., financial-return, non-life-insurance-1)
+    )
+    (?P<company>\d+)?               # Optional digit(s) for company number
+    [_-]                            # Separator (underscore or hyphen)
+    (?:(?!\d{4}(?:[-_]|$)).*?[_-])? # Optional intermediate text (e.g., quarterly-financial_), avoiding start year consumption
+    (?P<start_year>\d{4})           # 4-digit start year
+    (?:[-_](?P<end_year>\d{4}))?    # Optional hyphen/underscore and 4-digit end year
+    (?:_(?P<suffix>[A-Za-z]+))?     # Optional suffix, e.g., "_A"
+    (?:\.xlsm)?$                    # File extension
+    """,
+    re.VERBOSE
+)
 
 IPO_FILTER_CRITERIA = {
     'keep_true': [

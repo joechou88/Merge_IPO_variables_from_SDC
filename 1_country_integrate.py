@@ -12,10 +12,24 @@ if existing_files:
     user_response = input(f"Previous integration file(s) exist. Do you want to overwrite it? (Y/N): ")
     if user_response.lower() != 'y':
         print("Operation cancelled.")
-        exit()
+        sys.exit()
 
     for file in existing_files:
         os.remove(file)
+
+# Load country codes mapping
+country_code_file = './country-code.xlsx'
+code_mapping = {}
+if os.path.exists(country_code_file):
+    code_df = pd.read_excel(country_code_file)
+    for index, row in code_df.iterrows():
+        country_name = str(row.get('Country_name', '')).strip()
+        if country_name:
+            normalized_key = country_name.lower().replace("-", " ")
+            code_mapping[normalized_key] = {
+                'Country_code': row.get('Country_code', ''),
+                'Country_code2': row.get('Country_code2', '')
+            }
 
 # Find all Excel files in the specific folder
 search_pattern = os.path.join(config.SDC_RAW_DATA_FOLDER, '*.xlsx')
@@ -39,6 +53,27 @@ for current_file in excel_files:
         current_df = pd.read_excel(current_file, sheet_name='Request 3', header=2)
         current_df = utility.convert_datetime_to_date(current_df)
 
+        # Parse country name using FILENAME_PATTERN from config
+        base_name = file_name.replace('.xlsx', '')
+        match = config.FILENAME_PATTERN.match(base_name)
+        
+        if match:
+            parsed_country = match.group('country')
+            country_name = parsed_country if parsed_country else base_name
+        else:
+            country_name = base_name
+            
+        search_key = country_name.lower().replace("-", " ")
+        display_country_name = country_name.replace("-", " ")
+        
+        country_code = code_mapping.get(search_key, {}).get('Country_code', '')
+        country_code2 = code_mapping.get(search_key, {}).get('Country_code2', '')
+
+        # Insert country columns at the front
+        current_df.insert(0, 'country', display_country_name)
+        current_df.insert(1, 'country_code', country_code)
+        current_df.insert(2, 'country_code2', country_code2)
+
         df_list.append(current_df)
         print("Done")
     except Exception as error:
@@ -46,9 +81,6 @@ for current_file in excel_files:
         sys.exit()
 
 combined_df = pd.concat(df_list, ignore_index=True)
-
-# Fill all empty values with a dot
-combined_df = combined_df.fillna('.')
 
 record_count = len(combined_df)
 output_path = config.get_output_path(config.COUNTRY_INTEGRATION_FILE_PREFIX, record_count)
