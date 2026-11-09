@@ -2,14 +2,6 @@
 This script (`1_country_integrate.py`) automates the consolidation of country-specific Initial Public Offering (IPO) data downloaded from the SDC Platinum database. Because large SDC queries often fail or time out, data is typically downloaded on a country-by-country basis. This tool merges these individual Excel files into a single master dataset for streamlined downstream analysis.
 
 **Features**
-* **Alphabetical Concatenation:** Automatically reads and vertically merges all country `.xlsx` files in alphabetical order.
-* **Overwrite Protection:** Checks if the consolidated output file already exists and prompts for user confirmation before overwriting.
-* **Targeted Extraction:** Specifically targets the `Request 3` worksheet and correctly parses data starting from row 3 (header).
-
-## SDC IPO Data Country Integration
-This script (`1_country_integrate.py`) automates the consolidation of country-specific Initial Public Offering (IPO) data downloaded from the SDC Platinum database. Because large SDC queries often fail or time out, data is typically downloaded on a country-by-country basis. This tool merges these individual Excel files into a single master dataset for streamlined downstream analysis.
-
-**Features**
 - **Alphabetical Concatenation:** Automatically reads and vertically merges all country `.xlsx` files in alphabetical order.
 - **Overwrite Protection:** Checks if the consolidated output file already exists and prompts for user confirmation before overwriting.
 - **Targeted Extraction:** Specifically targets the `Request 3` worksheet and correctly parses data starting from row 3 (header).
